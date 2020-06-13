@@ -1,0 +1,9 @@
+[package]
+name = "newick"
+version = "0.1.0"
+authors = ["kaorun343 <5625395+kaorun343@users.noreply.github.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
