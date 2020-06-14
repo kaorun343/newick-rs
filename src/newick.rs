@@ -4,6 +4,7 @@ use crate::tree::Tree;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_until, take_while},
+    character::complete::space0,
     combinator::{map, opt},
     number::complete::double,
     sequence::delimited,
@@ -33,6 +34,7 @@ fn leaf<T: Tree>(input: &str) -> IResult<&str, T> {
 
 #[inline]
 fn internal<T: Tree>(input: &str) -> IResult<&str, T> {
+    let (input, _) = space0(input)?;
     let (input, children) = delimited(tag("("), branch_set, tag(")"))(input)?;
     let (input, name) = name(input)?;
     Ok((input, Tree::internal(name, children)))
@@ -40,9 +42,11 @@ fn internal<T: Tree>(input: &str) -> IResult<&str, T> {
 
 #[inline]
 fn branch_set<T: Tree>(input: &str) -> IResult<&str, Vec<T>> {
+    let (input, _) = space0(input)?;
     alt((
         |input| {
             let (input, branch) = branch(input)?;
+            let (input, _) = space0(input)?;
             let (input, _) = tag(",")(input)?;
             let (input, mut branch_set) = branch_set(input)?;
 
@@ -64,6 +68,7 @@ fn branch<T: Tree>(input: &str) -> IResult<&str, T> {
 
 #[inline]
 fn name(input: &str) -> IResult<&str, String> {
+    let (input, _) = space0(input)?;
     let (input, name) = alt((quoted_string, string))(input)?;
     let name = name.to_owned();
     Ok((input, name))
@@ -85,7 +90,9 @@ fn string(input: &str) -> IResult<&str, &str> {
 #[inline]
 fn length(input: &str) -> IResult<&str, Option<f64>> {
     opt(|input| {
+        let (input, _) = space0(input)?;
         let (input, _) = tag(":")(input)?;
+        let (input, _) = space0(input)?;
         double(input)
     })(input)
 }
@@ -106,6 +113,8 @@ mod test {
         assert!(parse_newick::<T>("(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);").is_ok());
         assert!(parse_newick::<T>("(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;").is_ok());
         assert!(parse_newick::<T>("((B:0.2,(C:0.3,D:0.4)E:0.5)A:0.1)F;  ").is_ok());
+        assert!(parse_newick::<T>("(A A,B,(C,D));").is_err());
+        assert!(parse_newick::<T>("(,,(,)) ;").is_ok());
     }
 
     #[test]
@@ -132,6 +141,20 @@ mod test {
                 )
             ))
         );
+        assert_eq!(
+            internal("( A : 0.1 , B : 0.5) 1000 :0.3"),
+            Ok((
+                " :0.3",
+                SimpleTree::new(
+                    "1000".to_owned(),
+                    None,
+                    vec![
+                        SimpleTree::new("A".to_owned(), Some(0.1), Vec::new()),
+                        SimpleTree::new("B".to_owned(), Some(0.5), Vec::new()),
+                    ]
+                )
+            ))
+        );
     }
 
     #[test]
@@ -146,6 +169,30 @@ mod test {
                     SimpleTree::new("".to_owned(), None, Vec::new())
                 ]
             ))
+        );
+        assert_eq!(
+            branch_set(", ,"),
+            Ok((
+                "",
+                vec![
+                    SimpleTree::new("".to_owned(), None, Vec::new()),
+                    SimpleTree::new("".to_owned(), None, Vec::new()),
+                    SimpleTree::new("".to_owned(), None, Vec::new())
+                ]
+            ))
+        );
+    }
+
+    #[test]
+    fn test_branch() {
+        assert_eq!(
+            branch("A:0.1"),
+            Ok(("", SimpleTree::new("A".to_owned(), Some(0.1), Vec::new())))
+        );
+
+        assert_eq!(
+            branch(" A : 0.1"),
+            Ok(("", SimpleTree::new("A".to_owned(), Some(0.1), Vec::new())))
         );
     }
 
@@ -163,5 +210,7 @@ mod test {
         assert_eq!(length(""), Ok(("", None)));
         assert_eq!(length(",D"), Ok((",D", None)));
         assert_eq!(length(":0.1,D"), Ok((",D", Some(0.1))));
+        assert_eq!(length(" :0.1"), Ok(("", Some(0.1))));
+        assert_eq!(length(": 0.1"), Ok(("", Some(0.1))));
     }
 }
