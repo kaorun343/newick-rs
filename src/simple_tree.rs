@@ -1,4 +1,4 @@
-use crate::tree::Tree;
+use crate::tree::FromNewick;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
@@ -18,7 +18,7 @@ impl SimpleTree {
     }
 }
 
-impl Tree for SimpleTree {
+impl FromNewick for SimpleTree {
     fn leaf(name: String) -> Self {
         Self::new(name, None, Vec::new())
     }

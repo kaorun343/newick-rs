@@ -1,6 +1,6 @@
 extern crate nom;
 
-use crate::tree::Tree;
+use crate::tree::FromNewick;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_until, take_while},
@@ -11,37 +11,37 @@ use nom::{
     IResult,
 };
 
-pub fn parse_newick<T: Tree>(input: &str) -> IResult<&str, T> {
+pub fn parse_newick<T: FromNewick>(input: &str) -> IResult<&str, T> {
     tree(input)
 }
 
 #[inline]
-fn tree<T: Tree>(input: &str) -> IResult<&str, T> {
+fn tree<T: FromNewick>(input: &str) -> IResult<&str, T> {
     let (input, tree) = alt((branch, sub_tree))(input)?;
     let (input, _) = tag(";")(input)?;
     Ok((input, tree))
 }
 
-fn sub_tree<T: Tree>(input: &str) -> IResult<&str, T> {
+fn sub_tree<T: FromNewick>(input: &str) -> IResult<&str, T> {
     alt((internal, leaf))(input)
 }
 
 #[inline]
-fn leaf<T: Tree>(input: &str) -> IResult<&str, T> {
+fn leaf<T: FromNewick>(input: &str) -> IResult<&str, T> {
     let (input, name) = name(input)?;
-    Ok((input, Tree::leaf(name)))
+    Ok((input, FromNewick::leaf(name)))
 }
 
 #[inline]
-fn internal<T: Tree>(input: &str) -> IResult<&str, T> {
+fn internal<T: FromNewick>(input: &str) -> IResult<&str, T> {
     let (input, _) = space0(input)?;
     let (input, children) = delimited(tag("("), branch_set, tag(")"))(input)?;
     let (input, name) = name(input)?;
-    Ok((input, Tree::internal(name, children)))
+    Ok((input, FromNewick::internal(name, children)))
 }
 
 #[inline]
-fn branch_set<T: Tree>(input: &str) -> IResult<&str, Vec<T>> {
+fn branch_set<T: FromNewick>(input: &str) -> IResult<&str, Vec<T>> {
     let (input, _) = space0(input)?;
     alt((
         |input| {
@@ -60,7 +60,7 @@ fn branch_set<T: Tree>(input: &str) -> IResult<&str, Vec<T>> {
     ))(input)
 }
 
-fn branch<T: Tree>(input: &str) -> IResult<&str, T> {
+fn branch<T: FromNewick>(input: &str) -> IResult<&str, T> {
     let (input, sub_tree) = sub_tree::<T>(input)?;
     let (input, length) = length(input)?;
     Ok((input, sub_tree.update_length(length)))

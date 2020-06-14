@@ -1,4 +1,4 @@
-pub trait Tree: Sized {
+pub trait FromNewick: Sized {
     fn leaf(name: String) -> Self;
     fn internal(name: String, children: Vec<Self>) -> Self;
 
