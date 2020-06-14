@@ -11,6 +11,7 @@ use nom::{
     IResult,
 };
 
+/// This function receives a newick format text and returns a phylogenetic tree.
 pub fn from_newick<T: FromNewick>(input: &str) -> IResult<&str, T> {
     tree(input)
 }
@@ -97,6 +98,7 @@ fn length(input: &str) -> IResult<&str, Option<f64>> {
     })(input)
 }
 
+/// This function receives a phylogenetic tree and returns a newick text.
 pub fn to_newick<T: ToNewick>(tree: &T) -> String {
     format_tree(tree)
 }
