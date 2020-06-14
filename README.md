@@ -1,6 +1,8 @@
 # newick-rs
 
 [![Build Status](https://travis-ci.com/kaorun343/newick.svg?branch=master)](https://travis-ci.com/kaorun343/newick)
+[![newick-rs at crates.io](https://img.shields.io/crates/v/newick-rs.svg)](https://crates.io/crates/newick-rs)
+[![newick-rs at docs.rs](https://docs.rs/newick-rs/badge.svg)](https://docs.rs/newick-rs)
 
 ## Usage
 
