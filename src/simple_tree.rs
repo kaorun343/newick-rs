@@ -1,4 +1,4 @@
-use crate::tree::FromNewick;
+use crate::tree::{FromNewick, ToNewick};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
@@ -29,5 +29,21 @@ impl FromNewick for SimpleTree {
 
     fn update_length(self, length: Option<f64>) -> Self {
         Self::new(self.name, length, self.children)
+    }
+}
+
+impl ToNewick for SimpleTree {
+    type Child = SimpleTree;
+
+    fn get_name(&self) -> String {
+        self.name.clone()
+    }
+
+    fn get_children<'a>(&'a self) -> Vec<&'a Self::Child> {
+        self.children.iter().collect()
+    }
+
+    fn get_length(&self) -> Option<f64> {
+        self.length
     }
 }

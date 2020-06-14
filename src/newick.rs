@@ -1,6 +1,6 @@
 extern crate nom;
 
-use crate::tree::FromNewick;
+use crate::tree::{FromNewick, ToNewick};
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_until, take_while},
@@ -95,6 +95,39 @@ fn length(input: &str) -> IResult<&str, Option<f64>> {
         let (input, _) = space0(input)?;
         double(input)
     })(input)
+}
+
+pub fn to_newick<T: ToNewick>(tree: &T) -> String {
+    format_tree(tree)
+}
+
+#[inline]
+fn format_tree<T: ToNewick>(tree: &T) -> String {
+    format!("{};", format_sub_tree(tree))
+}
+
+fn format_sub_tree<T: ToNewick>(tree: &T) -> String {
+    let children = {
+        let children = tree.get_children();
+        if children.is_empty() {
+            String::new()
+        } else {
+            let branch_set = children
+                .into_iter()
+                .map(format_sub_tree)
+                .collect::<Vec<_>>()
+                .join(",");
+            format!("({})", branch_set)
+        }
+    };
+
+    let name = tree.get_name();
+
+    let length = tree
+        .get_length()
+        .map_or(String::new(), |length| format!(":{}", length));
+
+    format!("{}{}{}", children, name, length)
 }
 
 #[cfg(test)]
@@ -212,5 +245,26 @@ mod test {
         assert_eq!(length(":0.1,D"), Ok((",D", Some(0.1))));
         assert_eq!(length(" :0.1"), Ok(("", Some(0.1))));
         assert_eq!(length(": 0.1"), Ok(("", Some(0.1))));
+    }
+
+    #[test]
+    fn test_to_newick() {
+        type T = SimpleTree;
+        vec![
+            "(,,(,));",
+            "(A,B,(C,D));",
+            "(A,B,(C,D)E)F;",
+            "(:0.1,:0.2,(:0.3,:0.4):0.5);",
+            "(:0.1,:0.2,(:0.3,:0.4):0.5):0.6;",
+            "(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);",
+            "(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;",
+        ]
+        .into_iter()
+        .for_each(|newick| {
+            assert_eq!(
+                to_newick(&parse_newick::<T>(newick).unwrap().1),
+                newick.to_owned()
+            );
+        });
     }
 }
