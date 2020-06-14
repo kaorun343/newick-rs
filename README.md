@@ -1,5 +1,7 @@
 # newick-rs
 
+[![Build Status](https://travis-ci.com/kaorun343/newick.svg?branch=master)](https://travis-ci.com/kaorun343/newick)
+
 ## Usage
 
 ```rust
