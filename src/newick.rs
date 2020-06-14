@@ -6,14 +6,15 @@ use nom::{
     bytes::complete::{tag, take_until, take_while},
     character::complete::space0,
     combinator::{map, opt},
+    error::ErrorKind,
     number::complete::double,
     sequence::delimited,
-    IResult,
+    Err, IResult,
 };
 
 /// This function receives a newick format text and returns a phylogenetic tree.
-pub fn from_newick<T: FromNewick>(input: &str) -> IResult<&str, T> {
-    tree(input)
+pub fn from_newick<T: FromNewick>(input: &str) -> Result<T, Err<(&str, ErrorKind)>> {
+    tree(input).map(|(_, tree)| tree)
 }
 
 #[inline]
@@ -264,7 +265,7 @@ mod test {
         .into_iter()
         .for_each(|newick| {
             assert_eq!(
-                to_newick(&from_newick::<T>(newick).unwrap().1),
+                to_newick(&from_newick::<T>(newick).unwrap()),
                 newick.to_owned()
             );
         });

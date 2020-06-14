@@ -11,7 +11,7 @@ extern crate newick_rs;
 
 fn main() {
     let input_text = "(A,B)";
-    let input_tree = newick_rs::from_newick(text);
+    let input_tree = newick_rs::from_newick(text).unwrap();
 
     // some logics
 
