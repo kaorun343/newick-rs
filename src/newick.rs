@@ -11,7 +11,7 @@ use nom::{
     IResult,
 };
 
-pub fn parse_newick<T: FromNewick>(input: &str) -> IResult<&str, T> {
+pub fn from_newick<T: FromNewick>(input: &str) -> IResult<&str, T> {
     tree(input)
 }
 
@@ -136,18 +136,18 @@ mod test {
     use crate::simple_tree::SimpleTree;
 
     #[test]
-    fn test_parse_newick() {
+    fn test_from_newick() {
         type T = SimpleTree;
-        assert!(parse_newick::<T>("(,,(,));").is_ok());
-        assert!(parse_newick::<T>("(A,B,(C,D));").is_ok());
-        assert!(parse_newick::<T>("(A,B,(C,D)E)F;").is_ok());
-        assert!(parse_newick::<T>("(:0.1,:0.2,(:0.3,:0.4):0.5);").is_ok());
-        assert!(parse_newick::<T>("(:0.1,:0.2,(:0.3,:0.4):0.5):0.0;").is_ok());
-        assert!(parse_newick::<T>("(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);").is_ok());
-        assert!(parse_newick::<T>("(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;").is_ok());
-        assert!(parse_newick::<T>("((B:0.2,(C:0.3,D:0.4)E:0.5)A:0.1)F;  ").is_ok());
-        assert!(parse_newick::<T>("(A A,B,(C,D));").is_err());
-        assert!(parse_newick::<T>("(,,(,)) ;").is_ok());
+        assert!(from_newick::<T>("(,,(,));").is_ok());
+        assert!(from_newick::<T>("(A,B,(C,D));").is_ok());
+        assert!(from_newick::<T>("(A,B,(C,D)E)F;").is_ok());
+        assert!(from_newick::<T>("(:0.1,:0.2,(:0.3,:0.4):0.5);").is_ok());
+        assert!(from_newick::<T>("(:0.1,:0.2,(:0.3,:0.4):0.5):0.0;").is_ok());
+        assert!(from_newick::<T>("(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);").is_ok());
+        assert!(from_newick::<T>("(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;").is_ok());
+        assert!(from_newick::<T>("((B:0.2,(C:0.3,D:0.4)E:0.5)A:0.1)F;  ").is_ok());
+        assert!(from_newick::<T>("(A A,B,(C,D));").is_err());
+        assert!(from_newick::<T>("(,,(,)) ;").is_ok());
     }
 
     #[test]
@@ -262,7 +262,7 @@ mod test {
         .into_iter()
         .for_each(|newick| {
             assert_eq!(
-                to_newick(&parse_newick::<T>(newick).unwrap().1),
+                to_newick(&from_newick::<T>(newick).unwrap().1),
                 newick.to_owned()
             );
         });
