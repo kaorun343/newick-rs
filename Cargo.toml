@@ -1,5 +1,5 @@
 [package]
-name = "newick"
+name = "newick-rs"
 version = "0.1.0"
 authors = ["kaorun343 <5625395+kaorun343@users.noreply.github.com>"]
 edition = "2018"
